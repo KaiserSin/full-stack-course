@@ -1,16 +1,17 @@
-const App = () => {
-  const friends = [
-    { name: 'Peter', age: 4 },
-    { name: 'Maya', age: 10 },
-  ]
+import { useState } from 'react'
 
+
+
+const App = () => {
+  const [value, setValue] = useState(10)
 
   return (
     <div>
-      <p>{friends[0].name} {friends[0].age}</p>
-      <p>{friends[1].name} {friends[1].age}</p>
+      {value}
+      <button onClick={() => setValue(0)}>
+        button
+      </button>
     </div>
   )
 }
-
 export default App
