@@ -1,7 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors')
 const { request } = require('http');
 const app = express();
+
+app.use(cors())
 
 app.use(express.json())
 
@@ -109,6 +112,34 @@ app.post("/api/persons", (request, response) =>{
     phonebook = phonebook.concat(person)
     response.json(person)
 })
+
+
+app.put('/api/persons/:id', (request, response) => {
+  const id = request.params.id
+  const body = request.body
+
+  if (!body.name || !body.number) {
+    return response.status(400).json({ 
+      error: 'name or phone number is missing' 
+    })
+  }
+
+  const index = phonebook.findIndex(person => person.id === id)
+  
+  if (index === -1) {
+    return response.status(404).json({ error: 'person not found' })
+  }
+
+  const updatedPerson = {
+    ...phonebook[index],
+    name: body.name, 
+    number: body.number    
+  }
+
+  phonebook[index] = updatedPerson
+  response.json(updatedPerson)
+})
+
 
 const PORT = 3001
   app.listen(PORT, () => {
