@@ -6,9 +6,12 @@ const app = express();
 
 app.use(cors())
 
+app.use(express.static('dist'))
+
 app.use(express.json())
 
 morgan.token('body', (req) => JSON.stringify(req.body))
+
 
 app.use((req, res, next) => {
   if (req.method === 'POST') {
@@ -138,6 +141,10 @@ app.put('/api/persons/:id', (request, response) => {
 
   phonebook[index] = updatedPerson
   response.json(updatedPerson)
+})
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'build', 'index.html'))
 })
 
 
