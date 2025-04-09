@@ -42,9 +42,14 @@ const PersonForm = ({persons, setPersons, newName, setNewName, newNumber, setNew
           }
         )
         .catch(error =>{
-          console.log(error)
+          console.log(error.response?.data?.error || error.message)
           setTypeOfNotification("error")
-          setErrorMessage(`Information of ${whoEdited.name} has already been removed from server`)
+
+          if (error.response?.status === 400) {
+            setErrorMessage(error.response.data.error)
+          } else {
+            setErrorMessage(`Information of ${whoEdited.name} has already been removed from server`)
+          }
           setTimeout(() => {
               setErrorMessage(null)
               setTypeOfNotification("successful")
@@ -68,6 +73,15 @@ const PersonForm = ({persons, setPersons, newName, setNewName, newNumber, setNew
           setErrorMessage(`Added ${per.name}`)
           setTimeout(() => {
             setErrorMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          console.log(error.response.data.error) 
+          setTypeOfNotification("error")
+          setErrorMessage(error.response.data.error)
+          setTimeout(() => {
+            setErrorMessage(null)
+            setTypeOfNotification("successful")
           }, 5000)
         })
     }
