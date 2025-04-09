@@ -1,10 +1,9 @@
 require('dotenv').config()
-const express = require('express');
+const express = require('express')
 const Person = require('./models/person')
-const morgan = require('morgan');
+const morgan = require('morgan')
 const cors = require('cors')
-const { request } = require('http');
-const app = express();
+const app = express()
 
 app.use(cors())
 
@@ -31,13 +30,13 @@ app.use((req, res, next) => {
 })
 
 
-app.get("/api/persons", (req, res, next) => {
+app.get('/api/persons', (req, res, next) => {
   Person.find({})
     .then(result => res.json(result))
     .catch(error => next(error))
 })
 
-app.get("/api/persons/:id", (req, res, next) => {
+app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then(person => {
       if (person) {
@@ -49,7 +48,7 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get("/info", (req, res, next) => {
+app.get('/info', (req, res, next) => {
   const date = new Date()
   Person.find({})
     .then(result => {
@@ -63,7 +62,7 @@ app.get("/info", (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.delete("/api/persons/:id", (req, res, next) => {
+app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then(result => {
       if (result) {
@@ -75,7 +74,7 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.post("/api/persons", (req, res, next) => {
+app.post('/api/persons', (req, res, next) => {
   const { name, number } = req.body
 
   if (!name || !number) {
@@ -121,7 +120,7 @@ app.put('/api/persons/:id', (req, res, next) => {
 })
 
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'build', 'index.html'))
+  res.sendFile('dist/index.html')
 })
 
 const unknownEndpoint = (req, res) => {
@@ -143,6 +142,6 @@ const errorHandler = (error, req, res, next) => {
 app.use(errorHandler)
 
 const PORT = process.env.PORT
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
