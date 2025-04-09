@@ -31,65 +31,70 @@ app.use((req, res, next) => {
 })
 
 
-app.get("/api/persons", (request, response) => {
-    Person.find({}).then(result => {
-      response.json(result)
-    })
+app.get("/api/persons", (req, res, next) => {
+  Person.find({})
+    .then(result => res.json(result))
+    .catch(error => next(error))
 })
 
-app.get("/api/persons/:id", (request, response) =>{
-    Person.findById(request.params.id).then(person =>{
-      response.json(person)
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person)
+      } else {
+        res.status(404).end()
+      }
     })
+    .catch(error => next(error))
 })
 
-app.get("/info", (request, response) =>{
-    const date = new Date();
-
-    Person.find({}).then(result => {
+app.get("/info", (req, res, next) => {
+  const date = new Date()
+  Person.find({})
+    .then(result => {
       const amount = result.length
       const message = `
-          <p>Phonebook has info for ${amount} people</p>
-          <p>${date}</p>
+        <p>Phonebook has info for ${amount} people</p>
+        <p>${date}</p>
       `
-      response.send(message)
+      res.send(message)
     })
+    .catch(error => next(error))
 })
 
-app.delete("/api/persons/:id", (request, response) =>{
-    Person.findByIdAndDelete(request.params.id)
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
     .then(result => {
       if (result) {
-        response.status(204).end()
+        res.status(204).end()
       } else {
-        response.status(404).json({ error: 'person not found' })
+        res.status(404).json({ error: 'person not found' })
       }
     })
+    .catch(error => next(error))
 })
 
-app.post("/api/persons", (request, response) =>{
-  const { name, number } = request.body
+app.post("/api/persons", (req, res, next) => {
+  const { name, number } = req.body
 
-    if (!name || !number) {
-        return response.status(400).json({ 
-            error: 'name or phone number is missing' 
-        })
-    }
+  if (!name || !number) {
+    return res.status(400).json({ error: 'name or phone number is missing' })
+  }
 
-    Person.findOne({ name }).then(existing => {
+  Person.findOne({ name })
+    .then(existing => {
       if (existing) {
-        return response.status(400).json({ 
-          error: 'name must be unique' 
-        })
+        return res.status(400).json({ error: 'name must be unique' })
       }
-  
+
       const person = new Person({ name, number })
-  
-      person.save()
-        .then(savedPerson => {
-          response.json(savedPerson)
-        })
+
+      return person.save().then(savedPerson => {
+        res.json(savedPerson)
+      })
     })
+    .catch(error => next(error))
 })
 
 
@@ -108,14 +113,36 @@ app.put('/api/persons/:id', (request, response) => {
     { name, number },
     { new: true }
   ).then(updatedPerson => {
-    response.json(updatedPerson)
+    if (updatedPerson) {
+      res.json(updatedPerson)
+    } else {
+      res.status(404).end()
+    }
   })
+  .catch(error => next(error))
 })
 
 app.get('*', (req, res) => {
   res.sendFile(path.resolve(__dirname, 'build', 'index.html'))
 })
 
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
+
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT
   app.listen(PORT, () => {
