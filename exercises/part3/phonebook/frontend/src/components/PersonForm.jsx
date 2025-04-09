@@ -25,7 +25,7 @@ const PersonForm = ({persons, setPersons, newName, setNewName, newNumber, setNew
         .then(returnedObj => {
             let newPersons = persons.map(val =>{
               if(val.id === returnedObj.id){
-                  return returnedObj
+                return { ...returnedObj, isFiltered: true }
               } else {
                 return val
               }
@@ -54,27 +54,22 @@ const PersonForm = ({persons, setPersons, newName, setNewName, newNumber, setNew
     }
 
     const addPerson = () => {
-        const personObject ={
-          name: newName.trim(),
-          number: newNumber,
-          id: persons.reduce((max, val) =>(val.id > max ? val.id : max), 0) +1,
-          isFiltered: true
-        }
-          
-        personService.
-        create(personObject)
+      const personObject = {
+        name: newName.trim(),
+        number: newNumber
+      }
+    
+      personService
+        .create(personObject)
         .then(per => {
-          setPersons(persons.concat(per))
+          setPersons(persons.concat({ ...per, isFiltered: true }))
           setNewNumber('')
           setNewName('')
-          setErrorMessage(
-            `Added ${per.name}`
-          )
+          setErrorMessage(`Added ${per.name}`)
           setTimeout(() => {
             setErrorMessage(null)
           }, 5000)
         })
-        
     }
 
     return(

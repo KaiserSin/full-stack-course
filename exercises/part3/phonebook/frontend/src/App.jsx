@@ -20,12 +20,13 @@ const App = () => {
     personService
       .getAll()
       .then(per => 
-        setPersons(per.map(val => {
-          let newPer = {...val, isFiltered: true}
-          personService.update(newPer.id, newPer)
-          return newPer
+        setPersons(per.map(val => ({
+          ...val,
+          isFiltered: true
         })))
+      )
   }, [])
+  
 
   return (
     <div>
