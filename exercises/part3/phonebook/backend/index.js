@@ -86,10 +86,8 @@ app.post('/api/persons', (req, res, next) => {
       if (existing) {
         return res.status(400).json({ error: 'name must be unique' })
       }
-
       const person = new Person({ name, number })
-
-      return person.save().then(savedPerson => { 
+      return person.save().then(savedPerson => {
         res.json(savedPerson)
       })
     })
