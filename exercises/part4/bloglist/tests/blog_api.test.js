@@ -129,6 +129,39 @@ test('fails with status code 400 when url is missing', async () => {
     assert.strictEqual(response.body.length, initialBlogs.length)
   })
 
+test('delete a blog reduces the total count by one', async () => {
+    const blogToDelete = initialBlogs[0]
+    await api
+        .delete(`/api/blogs/${blogToDelete._id}`)
+        .expect(204)
+
+    const allAfter = await api
+        .get('/api/blogs')
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(allAfter.body.length, initialBlogs.length - 1)
+
+    const titles = allAfter.body.map(b => b.title)
+    assert.ok(!titles.includes(blogToDelete.title))
+})
+
+test('update a blog updates fields without changing the total count', async () => {
+    const blogToUpdate = initialBlogs[0]
+    const updatedData = { ...blogToUpdate, likes: blogToUpdate.likes + 1 }
+    const putRes = await api
+        .put(`/api/blogs/${blogToUpdate._id}`)
+        .send(updatedData)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    assert.strictEqual(putRes.body.likes, updatedData.likes)
+
+    const allAfter = await api
+        .get('/api/blogs')
+        .expect(200)
+    assert.strictEqual(allAfter.body.length, initialBlogs.length)
+})
+
 after(async () => {
     await mongoose.connection.close()
   })
