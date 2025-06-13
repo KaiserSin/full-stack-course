@@ -48,7 +48,37 @@ test('unique identifier property of blog posts is named id', async () =>{
         assert.ok(blog.id)
         assert.strictEqual(blog._id, undefined)
     })
+})
+
+test('create a new blog post and verify that the total number of blogs in the system is increased by one', async () => {
+    const newBlog = {
+        _id: "5a422b891b54a676234d17fa",
+        title: "First class tests",
+        author: "Robert C. Martin",
+        url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
+        likes: 10,
+        __v: 0
+    }
+    const initialResponse = await api
+        .get('/api/blogs')
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    const initialCount = initialResponse.body.length
+    const postResponse = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
     
+    const finalResponse = await api
+        .get('/api/blogs')
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+    const finalCount = finalResponse.body.length
+    assert.strictEqual(finalCount, initialCount + 1)
+    
+    const content = finalResponse.body.map(val => val.id)
+    assert(content.includes(newBlog._id))
 })
 
 after(async () => {
