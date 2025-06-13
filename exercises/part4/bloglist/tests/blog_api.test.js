@@ -99,6 +99,36 @@ test('if the likes property is missing from the request, it will default to the 
     
 }) 
 
+test('fails with status code 400 when title is missing', async () => {
+    const newBlog = {
+        _id: "5a422b891b54a676234d17fa",
+        author: "Robert C. Martin",
+        url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
+        __v: 0
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+  
+test('fails with status code 400 when url is missing', async () => {
+    const newBlog = {
+        _id: "5a422b891b54a676234d17fa",
+        title: "First class tests",
+        author: "Robert C. Martin",
+        __v: 0
+    }
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+    const response = await api.get('/api/blogs')
+    assert.strictEqual(response.body.length, initialBlogs.length)
+  })
+
 after(async () => {
     await mongoose.connection.close()
   })
