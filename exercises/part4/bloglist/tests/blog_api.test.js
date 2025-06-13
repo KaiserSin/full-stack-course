@@ -81,6 +81,24 @@ test('create a new blog post and verify that the total number of blogs in the sy
     assert(content.includes(newBlog._id))
 })
 
+test('if the likes property is missing from the request, it will default to the value 0', async () =>{
+    const newBlog = {
+        _id: "5a422b891b54a676234d17fa",
+        title: "First class tests",
+        author: "Robert C. Martin",
+        url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
+        __v: 0
+    }
+
+    const result = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+    assert.strictEqual(result.body.likes, 0)
+    
+}) 
+
 after(async () => {
     await mongoose.connection.close()
   })
