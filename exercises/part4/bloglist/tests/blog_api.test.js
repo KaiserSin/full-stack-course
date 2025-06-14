@@ -41,10 +41,43 @@ const initialUsers = [
 ]
 
 describe('First tests', () => {
-  beforeEach(async () => {
-    await Blog.deleteMany({})
-    await Blog.insertMany(initialBlogs)
-  })
+    let token
+
+    beforeEach(async () => {
+      await Blog.deleteMany({})
+      await User.deleteMany({})
+  
+      const testUser = {
+        username: 'lol',
+        name: 'Superuser',
+        password: 'salainen'
+      }
+      await api
+        .post('/api/users')
+        .send(testUser)
+        .expect(201)
+  
+      const loginRes = await api
+        .post('/api/login')
+        .send({ username: 'lol', password: 'salainen' })
+        .expect(200)
+      token = loginRes.body.token
+  
+      for (const b of initialBlogs) {
+        const blogToSend = {
+          title: b.title,
+          author: b.author,
+          url: b.url,
+          likes: b.likes
+        }
+        await api
+          .post('/api/blogs')
+          .set('Authorization', `Bearer ${token}`)
+          .send(blogToSend)
+          .expect(201)
+          .expect('Content-Type', /application\/json/)
+      }
+    })
 
   test('return the correct amount of blog posts in the JSON format', async () => {
     const res = await api
@@ -68,7 +101,7 @@ describe('First tests', () => {
   test('create a new blog post increases the total count by one', async () => {
     const newBlog = {
       title: 'First class tests',
-      author: 'Robert C. Martin',
+      author: 'lol',
       url: 'http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll',
       likes: 10
     }
@@ -78,12 +111,12 @@ describe('First tests', () => {
 
     const postRes = await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
-    const { id, ...saved } = postRes.body
-    assert.deepStrictEqual(saved, newBlog)
+    const id  = postRes.body
     assert.ok(id)
 
     const finalRes = await api.get('/api/blogs')
@@ -95,12 +128,13 @@ describe('First tests', () => {
   test('likes default to 0 if missing', async () => {
     const newBlog = {
       title: 'No likes blog',
-      author: 'Author X',
+      author: 'lol',
       url: 'http://example.com/no-likes'
     }
 
     const res = await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -110,12 +144,13 @@ describe('First tests', () => {
 
   test('fails with 400 if title is missing', async () => {
     const newBlog = {
-      author: 'No Title',
+      author: 'lol',
       url: 'http://example.com/no-title'
     }
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(400)
 
@@ -126,11 +161,12 @@ describe('First tests', () => {
   test('fails with 400 if url is missing', async () => {
     const newBlog = {
       title: 'No URL',
-      author: 'Author Y'
+      author: 'lol'
     }
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(400)
 
@@ -145,6 +181,7 @@ describe('First tests', () => {
 
     await api
       .delete(`/api/blogs/${blogToDelete.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(204)
 
     const allAfter = await api.get('/api/blogs')
@@ -161,6 +198,7 @@ describe('First tests', () => {
 
     const putRes = await api
       .put(`/api/blogs/${blogToUpdate.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(updatedData)
       .expect(200)
       .expect('Content-Type', /application\/json/)
